@@ -114,7 +114,10 @@
             }
 
             const countdown = UNLOCK_INTERVAL - (elapsedSeconds % UNLOCK_INTERVAL);
-            countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${Math.floor(countdown / 60)}m ${countdown % 60}s`;
+            const hours = Math.floor(countdown / 3600);
+const minutes = Math.floor((countdown % 3600) / 60);
+const seconds = countdown % 60;
+countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${hours}h ${minutes}m ${seconds}s`;
         }
 
         const intervalId = setInterval(updateCountdown, 1000);
