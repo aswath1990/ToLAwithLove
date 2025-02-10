@@ -67,7 +67,7 @@
     </style>
 </head>
 <body>
-    <div id="countdown">My Next Sweet Memory Will Show In: 7h 0m 0s</div>
+    <div id="countdown">My Next Sweet Memory Will Show In: 8h 0m 0s</div>
     <div class="puzzle-container" id="puzzleContainer"></div>
     <button id="downloadButton" onclick="downloadImages()">Download Memories</button>
 
@@ -80,27 +80,14 @@
         const countdownDisplay = document.getElementById('countdown');
         const downloadButton = document.getElementById('downloadButton');
 
-        const UNLOCK_INTERVAL = 25200; // 3 minutes in seconds
-        const unlockOrder = [4, 8, 1, 5, 9, 2, 6, 10, 3, 7, 11];
+        const UNLOCK_INTERVAL = 28800; // 2 minutes in seconds
+        const unlockOrder = [8, 1, 5, 9, 2, 6, 10, 3, 7, 11];
         let unlockIndex = 0;
 
-        // Check for saved start time or set it
-        let startTime = localStorage.getItem('puzzleStartTime');
-        if (!startTime) {
-            startTime = new Date().getTime();
-            localStorage.setItem('puzzleStartTime', startTime);
-        } else {
-            startTime = parseInt(startTime);
-        }
+        const DEPLOYMENT_TIMESTAMP = new Date('2025-02-10T11:30:00-08:00').getTime();
 
-        function updateCountdown() {
-            const currentTime = new Date().getTime();
-            const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
-
-            const totalUnlocks = Math.floor(elapsedSeconds / UNLOCK_INTERVAL);
-
-            // Unlock tiles based on elapsed time
-            while (unlockIndex < totalUnlocks && unlockIndex < unlockOrder.length) {
+        function unlockNextTile() {
+            if (unlockIndex < unlockOrder.length) {
                 const nextTile = unlockOrder[unlockIndex];
                 document.querySelector(`.tile[data-index='${nextTile}']`).style.visibility = 'visible';
                 unlockIndex++;
@@ -110,14 +97,24 @@
                 clearInterval(intervalId);
                 countdownDisplay.textContent = "All Memories Unlocked!";
                 downloadButton.style.display = 'block';
-                return;
             }
+        }
 
-            const countdown = UNLOCK_INTERVAL - (elapsedSeconds % UNLOCK_INTERVAL);
+        function updateCountdown() {
+            const currentTime = new Date().getTime();
+            const elapsedSeconds = Math.floor((currentTime - DEPLOYMENT_TIMESTAMP) / 1000);
+            const nextUnlockTime = DEPLOYMENT_TIMESTAMP + (unlockIndex + 1) * UNLOCK_INTERVAL * 1000;
+            const countdown = Math.max(0, Math.floor((nextUnlockTime - currentTime) / 1000));
+
             const hours = Math.floor(countdown / 3600);
-const minutes = Math.floor((countdown % 3600) / 60);
-const seconds = countdown % 60;
-countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${hours}h ${minutes}m ${seconds}s`;
+            const minutes = Math.floor((countdown % 3600) / 60);
+            const seconds = countdown % 60;
+
+            countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${hours}h ${minutes}m ${seconds}s`;
+
+            if (countdown === 0) {
+                unlockNextTile();
+            }
         }
 
         const intervalId = setInterval(updateCountdown, 1000);
@@ -127,7 +124,7 @@ countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${hours}h ${m
             tile.className = 'tile';
             tile.dataset.index = i;
 
-            if (i === 0) {
+            if (i === 0 || i === 4) {
                 tile.style.visibility = 'visible';
             }
 
