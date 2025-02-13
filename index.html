@@ -26,7 +26,7 @@
             height: 100px;
             perspective: 1000px;
             position: relative;
-            visibility: hidden;
+            visibility: visible;
         }
         .flip-card {
             width: 100%;
@@ -55,7 +55,7 @@
             font-weight: bold;
         }
         #downloadButton {
-            display: none;
+            display: block;
             padding: 10px 20px;
             background-color: #007BFF;
             color: white;
@@ -67,7 +67,7 @@
     </style>
 </head>
 <body>
-    <div id="countdown">My Next Sweet Memory Will Show In: 0h 0m 20s</div>
+    <div id="countdown">All Memories Unlocked!</div>
     <div class="puzzle-container" id="puzzleContainer"></div>
     <button id="downloadButton" onclick="downloadImages()">Download Memories</button>
 
@@ -77,99 +77,34 @@
         const frontImage = 'front.png';
         const backImage = 'back.png';
         const puzzleContainer = document.getElementById('puzzleContainer');
-        const countdownDisplay = document.getElementById('countdown');
-        const downloadButton = document.getElementById('downloadButton');
-
-        const UNLOCK_INTERVAL = 7200; // 2 hours in seconds // 2 hours per tile unlock
-        const unlockOrder = [3, 7, 11]; // Tiles unlock in sequence every 2 hours // Unlock tile 3 first, then tile 7 after 2 hours, then tile 11 after another 2 hours
-        let unlockIndex = 0;
-
-        const DEPLOYMENT_TIMESTAMP = new Date().getTime(); // Reference current PST time // Reference current PST time
-
         let currentAudio = null;
-
-        function unlockNextTile() {
-            if (unlockIndex < unlockOrder.length) {
-                const nextTile = unlockOrder[unlockIndex];
-                setTimeout(() => {
-                    document.querySelector(`.tile[data-index='${nextTile}']`).style.visibility = 'visible';
-                    unlockIndex++;
-                }, unlockIndex * UNLOCK_INTERVAL * 1000);
-            }
-                const nextUnlockTime = DEPLOYMENT_TIMESTAMP + (unlockIndex + 1) * UNLOCK_INTERVAL * 1000;
-                if (new Date().getTime() >= nextUnlockTime) {
-                const nextTile = unlockOrder[unlockIndex];
-                document.querySelector(`.tile[data-index='${nextTile}']`).style.visibility = 'visible';
-                unlockIndex++;
-            }
-
-            if (unlockIndex >= unlockOrder.length) {
-                clearInterval(intervalId);
-                countdownDisplay.textContent = "All Memories Unlocked!";
-                downloadButton.style.display = 'block';
-            }
-        }
-
-        function updateCountdown() {
-            const currentTime = new Date().getTime();
-            const elapsedSeconds = Math.floor((currentTime - DEPLOYMENT_TIMESTAMP) / 1000);
-            const nextUnlockTime = DEPLOYMENT_TIMESTAMP + unlockIndex * UNLOCK_INTERVAL * 1000;
-            const countdown = Math.max(0, Math.floor((nextUnlockTime - currentTime) / 1000));
-
-            const hours = Math.floor(countdown / 3600);
-            const minutes = Math.floor((countdown % 3600) / 60);
-            const seconds = countdown % 60;
-
-            countdownDisplay.textContent = `My Next Sweet Memory Will Show In: ${hours}h ${minutes}m ${seconds}s`;
-
-            if (countdown <= 0) {
-                unlockNextTile();
-            }
-        }
-
-        const intervalId = setInterval(updateCountdown, 1000);
-
+        
         for (let i = 0; i < rows * cols; i++) {
-            if ([0, 1, 2, 4, 5, 6, 8, 9, 10].includes(i)) {
-                setTimeout(() => {
-                    document.querySelector(`.tile[data-index='${i}']`).style.visibility = 'visible';
-                }, 0);
-            }
             const tile = document.createElement('div');
             tile.className = 'tile';
             tile.dataset.index = i;
-
-            if (i === 0 || i === 4) {
-                tile.style.visibility = 'visible';
-            }
-
+            
             const flipCard = document.createElement('div');
             flipCard.className = 'flip-card';
-
+            
             const front = document.createElement('div');
             front.className = 'front';
             front.style.backgroundImage = `url(${frontImage})`;
             front.style.backgroundSize = `${cols * 100}px ${rows * 100}px`;
             front.style.backgroundPosition = `-${(i % cols) * 100}px -${Math.floor(i / cols) * 100}px`;
-
+            
             const back = document.createElement('div');
             back.className = 'back';
             back.style.backgroundImage = `url(${backImage})`;
             back.style.backgroundSize = `${cols * 100}px ${rows * 100}px`;
             back.style.backgroundPosition = `-${(i % cols) * 100}px -${Math.floor(i / cols) * 100}px`;
-
+            
+            const audio = new Audio(`https://raw.githubusercontent.com/aswath1990/audio/main/tile${i}.mp3`);
+            audio.preload = 'auto';
+            
             flipCard.appendChild(front);
             flipCard.appendChild(back);
             tile.appendChild(flipCard);
-
-            const audio = new Audio(`https://raw.githubusercontent.com/aswath1990/audio/main/tile${i}.mp3`);
-            audio.preload = 'auto';
-            audio.preload = 'auto';
-
-            audio.addEventListener('error', () => {
-                console.error(`Audio file for tile${i}.mp3 not found.`);
-            });
-
             tile.addEventListener('click', () => {
                 tile.classList.toggle('flipped');
                 
@@ -184,10 +119,9 @@
                 
                 currentAudio = audio;
             });
-
             puzzleContainer.appendChild(tile);
         }
-
+        
         function downloadImages() {
             const link1 = document.createElement('a');
             link1.href = frontImage;
